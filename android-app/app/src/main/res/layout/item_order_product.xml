@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="6dp">
+
+    <!-- Línea del producto -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Badge cantidad -->
+        <TextView
+            android:id="@+id/txtQuantity"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:gravity="center"
+            android:text="1"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#ffffff"
+            android:background="@drawable/quantity_badge" />
+
+        <TextView
+            android:id="@+id/txtProductName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:text="Hamburguesa Doble"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#ffffff" />
+
+    </LinearLayout>
+
+    <!-- Container para extras -->
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/extrasContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="6dp"
+        android:visibility="gone" />
+
+</LinearLayout>

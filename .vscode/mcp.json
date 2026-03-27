@@ -1,0 +1,19 @@
+{
+  "servers": {
+    "mercadopago-mcp-server": {
+      "type": "http",
+      "url": "https://mcp.mercadopago.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${input:mercadopago-access-token}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "mercadopago-access-token",
+      "description": "Mercado Pago Access Token (prod o test)",
+      "password": true
+    }
+  ]
+}

@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  position  Int
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+model Product {
+  id          Int                 @id @default(autoincrement())
+  name        String
+  description String?
+  price       Decimal             @db.Decimal(10, 2)
+  imageUrl    String?
+  active      Boolean             @default(true)
+  categoryId  Int
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  orderItems  OrderItem[]
+  category    Category            @relation(fields: [categoryId], references: [id])
+  extraGroups ProductExtraGroup[]
+}
+
+model ExtraGroup {
+  id            Int                 @id @default(autoincrement())
+  name          String
+  description   String?
+  minSelections Int                 @default(0)
+  maxSelections Int?
+  active        Boolean             @default(true)
+  position      Int                 @default(0)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  paused        Boolean             @default(false)
+  options       ExtraOption[]
+  products      ProductExtraGroup[]
+}
+
+model ExtraOption {
+  id                    Int                  @id @default(autoincrement())
+  name                  String
+  price                 Decimal              @default(0) @db.Decimal(10, 2)
+  imageUrl              String?
+  active                Boolean              @default(true)
+  position              Int                  @default(0)
+  groupId               Int
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  paused                Boolean              @default(false)
+  group                 ExtraGroup           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  orderItemExtras       OrderItemExtra[]
+  productCustomizations ProductExtraOption[]
+}
+
+model ProductExtraGroup {
+  id            Int                  @id @default(autoincrement())
+  productId     Int
+  groupId       Int
+  position      Int                  @default(0)
+  maxSelections Int?
+  group         ExtraGroup           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  product       Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customOptions ProductExtraOption[]
+
+  @@unique([productId, groupId])
+}
+
+model ProductExtraOption {
+  id                  Int               @id @default(autoincrement())
+  productExtraGroupId Int
+  optionId            Int
+  priceOverride       Decimal?          @db.Decimal(10, 2)
+  option              ExtraOption       @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  productExtraGroup   ProductExtraGroup @relation(fields: [productExtraGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([productExtraGroupId, optionId])
+}
+
+model Order {
+  id            Int              @id @default(autoincrement())
+  status        OrderStatus      @default(PENDING)
+  totalAmount   Decimal          @db.Decimal(10, 2)
+  note          String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  kitchenStatus KitchenStatus    @default(PENDING)
+  receiptCode   String?          @unique
+  items         OrderItem[]
+  statusLogs    OrderStatusLog[]
+  payments      PaymentLog[]
+}
+
+model OrderStatusLog {
+  id            Int      @id @default(autoincrement())
+  orderId       Int
+  fieldChanged  String
+  previousValue String
+  newValue      String
+  changedBy     String?
+  source        String
+  notes         String?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+  order         Order    @relation(fields: [orderId], references: [id])
+}
+
+model OrderItem {
+  id        Int              @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  unitPrice Decimal          @db.Decimal(10, 2)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  order     Order            @relation(fields: [orderId], references: [id])
+  product   Product          @relation(fields: [productId], references: [id])
+  extras    OrderItemExtra[]
+}
+
+model OrderItemExtra {
+  id            Int         @id @default(autoincrement())
+  orderItemId   Int
+  extraOptionId Int
+  quantity      Int         @default(1)
+  unitPrice     Decimal     @db.Decimal(10, 2)
+  createdAt     DateTime    @default(now())
+  extraOption   ExtraOption @relation(fields: [extraOptionId], references: [id])
+  orderItem     OrderItem   @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+}
+
+model PaymentLog {
+  id                Int      @id @default(autoincrement())
+  orderId           Int
+  mpPaymentId       String   @unique
+  status            String
+  statusDetail      String?
+  paymentType       String?
+  paymentMethod     String?
+  operationType     String?
+  transactionAmount Decimal? @db.Decimal(10, 2)
+  installments      Int?
+  payerEmail        String?
+  rawPayload        Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  isManual          Boolean  @default(false)
+  manualApprovedBy  String?
+  manualNotes       String?
+  manualReason      String?
+  order             Order    @relation(fields: [orderId], references: [id])
+}
+
+model SystemConfig {
+  key       String   @id
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+  PAYMENT_FAILED
+}
+
+enum KitchenStatus {
+  PENDING
+  IN_PREPARATION
+  READY
+  CANCELLED
+  DELIVERED
+}

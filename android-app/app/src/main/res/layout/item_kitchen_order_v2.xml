@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="#0f172a"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header de la tarjeta -->
+        <LinearLayout
+            android:id="@+id/cardHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp"
+            android:background="@drawable/card_header_active">
+
+            <!-- Código del pedido -->
+            <TextView
+                android:id="@+id/txtOrderCode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="#ABC123"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#ffffff" />
+
+            <!-- Badge de tiempo -->
+            <TextView
+                android:id="@+id/txtTimeBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5 min"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#ffffff"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="8dp"
+                android:background="@drawable/time_badge_green" />
+
+        </LinearLayout>
+
+        <!-- Hora de creación -->
+        <TextView
+            android:id="@+id/txtCreatedAt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="14:32"
+            android:textSize="14sp"
+            android:textColor="#94a3b8"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="8dp" />
+
+        <!-- Items del pedido -->
+        <LinearLayout
+            android:id="@+id/itemsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp" />
+
+        <!-- Botones de acción -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <!-- Botón reimprimir -->
+            <Button
+                android:id="@+id/btnReprint"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:text="🖨️"
+                android:textSize="24sp"
+                android:backgroundTint="#6b7280"
+                android:layout_marginEnd="12dp" />
+
+            <!-- Botón de acción principal -->
+            <Button
+                android:id="@+id/btnAction"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:text="✓ LISTO"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#ffffff"
+                android:backgroundTint="#22c55e" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

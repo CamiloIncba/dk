@@ -1,0 +1,26 @@
+# Node / backend
+backend/node_modules
+backend/dist
+backend/.env
+
+# Android / Gradle
+android-app/.gradle
+android-app/.idea
+android-app/local.properties
+android-app/app/build
+android-app/build
+
+# Root IDE / Gradle (por si acaso)
+.gradle
+.idea
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
