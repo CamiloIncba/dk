@@ -9,6 +9,8 @@
 - [ ] Lint pasa.
 - [ ] Typecheck pasa.
 - [ ] Tests relevantes pasan.
+- [ ] Endpoints versionados (`/api/v1/*`) cubiertos por tests o checks de regresion.
+- [ ] Flujos que crean orden validan el canal de origen en nota interna (ej: `[CHANNEL:WEB_STORE]`).
 
 ### Experiencia
 - [ ] Estados de carga y error (si aplica UI).

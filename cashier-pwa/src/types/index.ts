@@ -32,6 +32,8 @@ export interface Order {
   receiptCode: string | null;
   totalAmount: string;
   createdAt: string;
+  channel?: string;
+  note?: string;
   items?: OrderItem[];  // opcional porque /admin/orders/recent no incluye items
 }
 

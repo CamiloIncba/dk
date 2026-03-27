@@ -2,10 +2,32 @@ import { Controller, Get, Patch, Post, Param, Body, Query, UseGuards, ParseIntPi
 import { AdminOrdersService, ManualPaymentDto } from './admin-orders.service';
 import { ApiKeyGuard } from '../common';
 
-@Controller('admin/orders')
+@Controller(['admin/orders', 'api/v1/admin/orders'])
 @UseGuards(ApiKeyGuard)
 export class AdminOrdersController {
   constructor(private readonly adminOrdersService: AdminOrdersService) {}
+
+  /**
+   * GET /api/v1/admin/orders?channel=WEB_STORE&kitchenStatus=READY&limit=20
+   * Lista pedidos admin con filtros opcionales.
+   */
+  @Get()
+  async getOrders(
+    @Query('channel') channel?: string,
+    @Query('kitchenStatus') kitchenStatus?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const parsedLimit = limit ? parseInt(limit, 10) : 50;
+    const safeLimit =
+      !Number.isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 100
+        ? parsedLimit
+        : 50;
+
+    return this.adminOrdersService.getAdminOrdersV1(safeLimit, {
+      channel: channel || undefined,
+      kitchenStatus: kitchenStatus || undefined,
+    });
+  }
 
   /**
    * GET /admin/orders/recent?limit=20

@@ -26,6 +26,43 @@ type OrderStatusResponse = {
 };
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3010";
+const REQUEST_TIMEOUT_MS = 8000;
+
+type AppErrorContext = "menu" | "checkout" | "status";
+
+function getFriendlyApiError(context: AppErrorContext, err: unknown): string {
+  if (err instanceof Error && err.name === "AbortError") {
+    return "La solicitud tardo demasiado. Revisa tu conexion e intenta nuevamente.";
+  }
+
+  if (err instanceof TypeError) {
+    return "No se pudo conectar con el servidor. Verifica tu conexion a internet.";
+  }
+
+  if (context === "menu") {
+    return "No se pudo cargar el menu. Intenta nuevamente en unos segundos.";
+  }
+  if (context === "status") {
+    return "No se pudo actualizar el estado del pedido. Intenta nuevamente.";
+  }
+  return "No se pudo procesar tu pedido. Intenta nuevamente.";
+}
+
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => {
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("es-CL", {
@@ -38,27 +75,30 @@ function formatCurrency(value: number): string {
 export default function App() {
   const [menu, setMenu] = useState<MenuResponse | null>(null);
   const [loadingMenu, setLoadingMenu] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [cart, setCart] = useState<Record<number, number>>({});
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
   const [createdOrderStatus, setCreatedOrderStatus] = useState<OrderStatusResponse | null>(null);
+  const [isPollingPaused, setIsPollingPaused] = useState(false);
+  const [isRefreshingStatus, setIsRefreshingStatus] = useState(false);
 
   useEffect(() => {
     const loadMenu = async () => {
       setLoadingMenu(true);
-      setError(null);
+      setApiError(null);
       try {
-        const res = await fetch(`${API_URL}/api/v1/store/menu`);
+        const res = await fetchWithTimeout(`${API_URL}/api/v1/store/menu`);
         if (!res.ok) throw new Error("No se pudo cargar el menu");
         const data = (await res.json()) as MenuResponse;
         setMenu(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Error de red");
+        setApiError(getFriendlyApiError("menu", err));
       } finally {
         setLoadingMenu(false);
       }
@@ -116,23 +156,63 @@ export default function App() {
   };
 
   const refreshStatus = async (orderId: number) => {
-    const res = await fetch(`${API_URL}/api/v1/store/orders/${orderId}/status`);
-    if (!res.ok) throw new Error("No se pudo consultar estado");
-    const data = (await res.json()) as OrderStatusResponse;
-    setCreatedOrderStatus(data);
+    setIsRefreshingStatus(true);
+    try {
+      const res = await fetchWithTimeout(`${API_URL}/api/v1/store/orders/${orderId}/status`);
+      if (!res.ok) throw new Error("No se pudo consultar estado");
+      const data = (await res.json()) as OrderStatusResponse;
+      setCreatedOrderStatus(data);
+      setApiError(null);
+    } catch (err) {
+      setApiError(getFriendlyApiError("status", err));
+    } finally {
+      setIsRefreshingStatus(false);
+    }
   };
+
+  useEffect(() => {
+    if (!createdOrderId || isPollingPaused) return;
+
+    const minDelay = 10_000;
+    const maxDelay = 15_000;
+    const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+    const timeoutId: number = window.setTimeout(() => {
+      void refreshStatus(createdOrderId);
+    }, delay);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [createdOrderId, isPollingPaused, createdOrderStatus]);
 
   const submitOrder = async (event: FormEvent) => {
     event.preventDefault();
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+
+    if (!trimmedName && !trimmedPhone) {
+      setCheckoutError("Ingresa tu nombre y telefono para continuar.");
+      return;
+    }
+    if (!trimmedName) {
+      setCheckoutError("El nombre es obligatorio.");
+      return;
+    }
+    if (!trimmedPhone) {
+      setCheckoutError("El telefono es obligatorio.");
+      return;
+    }
+
     if (cartItems.length === 0) {
-      setError("El carrito esta vacio.");
+      setCheckoutError("El carrito esta vacio.");
       return;
     }
 
     setIsSubmitting(true);
-    setError(null);
+    setCheckoutError(null);
+    setApiError(null);
     try {
-      const res = await fetch(`${API_URL}/api/v1/store/orders`, {
+      const res = await fetchWithTimeout(`${API_URL}/api/v1/store/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -140,7 +220,7 @@ export default function App() {
             productId: item.product.id,
             quantity: item.quantity,
           })),
-          customer: { name, phone, address },
+          customer: { name: trimmedName, phone: trimmedPhone, address },
           paymentMethod: "transfer",
           note,
         }),
@@ -149,10 +229,11 @@ export default function App() {
       if (!res.ok) throw new Error("No se pudo crear el pedido");
       const created = (await res.json()) as { id: number };
       setCreatedOrderId(created.id);
+      setIsPollingPaused(false);
       await refreshStatus(created.id);
       setCart({});
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al enviar pedido");
+      setApiError(getFriendlyApiError("checkout", err));
     } finally {
       setIsSubmitting(false);
     }
@@ -272,6 +353,11 @@ export default function App() {
             >
               {isSubmitting ? "Enviando..." : "Crear pedido"}
             </button>
+            {checkoutError && (
+              <p className="mt-2 rounded-md bg-destructive/10 p-2 text-sm text-destructive">
+                {checkoutError}
+              </p>
+            )}
           </form>
 
           {createdOrderId && createdOrderStatus && (
@@ -280,17 +366,31 @@ export default function App() {
               <p className="mt-2 text-sm">Pedido #{createdOrderId}</p>
               <p className="text-sm">Pago: {createdOrderStatus.status}</p>
               <p className="text-sm">Cocina: {createdOrderStatus.kitchenStatus}</p>
-              <button
-                type="button"
-                onClick={() => void refreshStatus(createdOrderId)}
-                className="mt-3 rounded-md border px-3 py-1 text-sm"
-              >
-                Actualizar estado
-              </button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => void refreshStatus(createdOrderId)}
+                  className="rounded-md border px-3 py-1 text-sm"
+                >
+                  {isRefreshingStatus ? "Actualizando..." : "Actualizar estado"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPollingPaused((prev) => !prev)}
+                  className="rounded-md border px-3 py-1 text-sm"
+                >
+                  {isPollingPaused ? "Reanudar auto-actualizacion" : "Pausar auto-actualizacion"}
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {isPollingPaused
+                  ? "Auto-actualizacion detenida."
+                  : "Auto-actualizacion activa cada 10-15 segundos."}
+              </p>
             </div>
           )}
 
-          {error && <p className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">{error}</p>}
+          {apiError && <p className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">{apiError}</p>}
         </aside>
       </section>
     </main>

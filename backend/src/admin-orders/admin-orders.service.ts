@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { OrderStatus, KitchenStatus } from '@prisma/client';
+import { OrderStatus, KitchenStatus, Prisma } from '@prisma/client';
+import { extractOrderChannelFromNote, ORDER_CHANNEL_UNKNOWN } from '../common';
 
 // Razones válidas para pago manual
 export const MANUAL_PAYMENT_REASONS = {
@@ -24,6 +25,68 @@ export interface ManualPaymentDto {
 export class AdminOrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getAdminOrdersV1(
+    limit: number = 50,
+    filters?: { channel?: string; kitchenStatus?: string },
+  ) {
+    const safeLimit =
+      !Number.isNaN(limit) && limit > 0 && limit <= 100 ? limit : 50;
+
+    const where: Prisma.OrderWhereInput = {};
+    const normalizedKitchenStatus = filters?.kitchenStatus?.toUpperCase();
+
+    if (normalizedKitchenStatus) {
+      const allowedKitchenStatuses: KitchenStatus[] = [
+        KitchenStatus.PENDING,
+        KitchenStatus.IN_PREPARATION,
+        KitchenStatus.READY,
+        KitchenStatus.DELIVERED,
+        KitchenStatus.CANCELLED,
+      ];
+
+      if (!allowedKitchenStatuses.includes(normalizedKitchenStatus as KitchenStatus)) {
+        throw new BadRequestException(
+          `kitchenStatus inválido: ${filters?.kitchenStatus}. Valores válidos: ${allowedKitchenStatuses.join(', ')}`,
+        );
+      }
+
+      where.kitchenStatus = normalizedKitchenStatus as KitchenStatus;
+    }
+
+    const normalizedChannel = filters?.channel?.toUpperCase();
+    if (normalizedChannel && normalizedChannel !== ORDER_CHANNEL_UNKNOWN) {
+      where.note = { contains: `[CHANNEL:${normalizedChannel}]` };
+    }
+
+    const orders = await this.prisma.order.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: safeLimit,
+      select: {
+        id: true,
+        status: true,
+        kitchenStatus: true,
+        createdAt: true,
+        updatedAt: true,
+        totalAmount: true,
+        receiptCode: true,
+        note: true,
+      },
+    });
+
+    const withChannel = orders.map((order) => ({
+      ...order,
+      channel: extractOrderChannelFromNote(order.note),
+      totalAmount: Number(order.totalAmount),
+    }));
+
+    if (normalizedChannel === ORDER_CHANNEL_UNKNOWN) {
+      return withChannel.filter((order) => order.channel === ORDER_CHANNEL_UNKNOWN);
+    }
+
+    return withChannel;
+  }
+
   /**
    * Devuelve los últimos pedidos creados, ordenados de más nuevo a más viejo.
    * 
@@ -45,10 +108,17 @@ export class AdminOrdersService {
         createdAt: true,
         totalAmount: true,
         receiptCode: true,
+        note: true,
       },
     });
 
-    return orders;
+    return orders.map((order) => {
+      const { note, ...rest } = order;
+      return {
+        ...rest,
+        channel: extractOrderChannelFromNote(note),
+      };
+    });
   }
 
   /**
@@ -313,6 +383,7 @@ export class AdminOrdersService {
     return {
       orders: orders.map((order) => ({
         ...order,
+        channel: extractOrderChannelFromNote(order.note),
         totalAmount: Number(order.totalAmount),
         items: order.items.map((item) => ({
           ...item,
