@@ -2,6 +2,8 @@
 
 Este repositorio se desarrolla con múltiples agentes especializados. El objetivo es **evitar solapamientos**, mantener **contratos estables** entre capas y acelerar la ejecución.
 
+Además, uno de los objetivos explícitos del proyecto es **permitir que los agentes colaboren dinámicamente** (handoff y co-diseño) para converger en la solución **más evolucionada** posible, sin romper ownership ni contratos.
+
 ### Agentes y ownership
 
 - **Agente Backend Core**
@@ -28,6 +30,13 @@ Este repositorio se desarrolla con múltiples agentes especializados. El objetiv
 - **Contract-first**: todo endpoint nuevo o cambio debe venir con contrato (DTO + ejemplos) y quedar documentado en `docs/api/`.
 - **Versionado**: preferir `/api/v1/...` para lo nuevo. No romper rutas existentes del sistema base.
 - **Idempotencia**: toda integración externa debe ser idempotente (dedupe por externalId).
+
+### Colaboración dinámica (objetivo)
+
+- **Handoff explícito**: si un agente se encuentra bloqueado o el impacto cruza ownership, abre un handoff breve en `docs/HANDOFFS.md` (qué intentó, qué falta, decisiones, links a archivos) y lo “entrega” al agente dueño.
+- **Co-diseño antes de tocar contratos**: cambios de API/DB/estados requieren mini-spec en `docs/api/` + un ADR breve si hay trade-offs.
+- **Propuestas con evidencia**: toda mejora debe venir con “cómo lo verifico” (tests, build, lint, reproducción).
+- **No romper ownership**: la colaboración es para destrabar y elevar la calidad; la implementación final en un área la consolida el agente dueño o se coordina explícitamente.
 
 ### Workflow obligatorio (Replicant)
 

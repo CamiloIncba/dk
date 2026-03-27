@@ -1,29 +1,30 @@
 ## Web Store (Fase 1) — shadcn/ui
 
-Este directorio será el sitio web público (marketing + compra) para la Dark Kitchen.
+Este directorio es el sitio web público (marketing + compra) para la Dark Kitchen.
 
-### Stack objetivo
+### Stack
 - React + Vite + TypeScript
-- Tailwind CSS
-- **shadcn/ui** (estándar visual de la empresa)
+- Tailwind CSS (v4)
+- **shadcn/ui** (estándar visual)
 
 ### Requisitos locales
-Necesitas Node.js + npm en el PATH.
+- Node.js + npm en el PATH
 
-### Inicialización (cuando Node esté disponible)
+### Comandos
 
 ```bash
-# 1) Crear app Vite
-npm create vite@latest web-store -- --template react-ts
-cd web-store
+# Dev server
+npm run dev
 
-# 2) Instalar deps
-npm install
+# Lint
+npm run lint
 
-# 3) Tailwind + shadcn/ui
-npx shadcn@latest init
+# Build producción
+npm run build
 ```
+
+### Notas (Tailwind v4)
+- `src/index.css` usa `@import "tailwindcss";` + `@config "../tailwind.config.js";` para que Tailwind cargue la config correctamente.
 
 ### Ownership
 - Agente: **Frontend Web Store**
-
