@@ -10,6 +10,10 @@ Este directorio es el sitio web público (marketing + compra) para la Dark Kitch
 ### Requisitos locales
 - Node.js + npm en el PATH
 
+### Variables de entorno
+
+- `VITE_API_URL` (opcional) — por defecto `http://localhost:3010`
+
 ### Comandos
 
 ```bash

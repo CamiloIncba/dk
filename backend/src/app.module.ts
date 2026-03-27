@@ -14,10 +14,25 @@ import { CashClosingModule } from './cash-closing/cash-closing.module';
 import { StatsModule } from './stats/stats.module';
 import { SystemConfigModule } from './config/config.module';
 import { ImagesModule } from './images/images.module';
-
+import { StoreModule } from './store/store.module';
 
 @Module({
-  imports: [PrismaModule, MenuModule, OrdersModule, PaymentsModule, KitchenModule, ReceiptsModule, AdminOrdersModule, UploadModule, ExtrasModule, CashClosingModule, StatsModule, SystemConfigModule, ImagesModule],
+  imports: [
+    PrismaModule,
+    MenuModule,
+    OrdersModule,
+    PaymentsModule,
+    KitchenModule,
+    ReceiptsModule,
+    AdminOrdersModule,
+    UploadModule,
+    ExtrasModule,
+    CashClosingModule,
+    StatsModule,
+    SystemConfigModule,
+    ImagesModule,
+    StoreModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
