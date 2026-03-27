@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/client';
-import type { Order } from '../types';
 
 interface AuditViewProps {
   onBack: () => void;
@@ -17,7 +16,15 @@ interface StatusLog {
   createdAt: string;
 }
 
-interface AuditOrder extends Order {
+interface AuditOrder {
+  id: number;
+  status: string;
+  kitchenStatus: string;
+  receiptCode: string | null;
+  totalAmount: number;
+  createdAt: string;
+  note?: string;
+  channel?: string;
   items: Array<{
     id: number;
     quantity: number;
@@ -83,7 +90,7 @@ export function AuditView({ onBack }: AuditViewProps) {
         search: currentFilters.search || undefined,
       };
       const result = await api.getOrdersForAudit(limit, newOffset, apiFilters);
-      setOrders(result.orders as AuditOrder[]);
+      setOrders(result.orders as unknown as AuditOrder[]);
       setTotal(result.total);
       setOffset(newOffset);
     } catch (err) {

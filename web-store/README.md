@@ -1,6 +1,16 @@
 ## Web Store (Fase 1) — shadcn/ui
 
-Este directorio es el sitio web público (marketing + compra) para la Dark Kitchen.
+Sitio público (marketing + compra) para la Dark Kitchen. **Fase 1 funcional**: landing, menú, producto con extras, checkout por pasos, seguimiento con timeline.
+
+### Rutas principales
+
+| Ruta | Descripción |
+|------|-------------|
+| `/` | Landing |
+| `/menu` | Catálogo por categorías |
+| `/producto/:id` | Ficha + extras → agregar al carrito |
+| `/checkout` | Carrito → datos → confirmación |
+| `/seguimiento` y `/seguimiento/:id` | Estado del pedido |
 
 ### Stack
 - React + Vite + TypeScript

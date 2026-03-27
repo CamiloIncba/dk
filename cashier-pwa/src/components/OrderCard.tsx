@@ -11,7 +11,7 @@ interface OrderCardProps {
   tab: 'new' | 'pending' | 'active' | 'ready';
 }
 
-export function OrderCard({ order, onPayCash, onPayManual, onRegenerateQR, onStart, onReady, onDelivered, tab }: OrderCardProps) {
+export function OrderCard({ order, onPayCash, onPayManual, onRegenerateQR, onStart: _onStart, onReady, onDelivered, tab }: OrderCardProps) {
   const formatPrice = (price: string) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',

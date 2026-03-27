@@ -497,7 +497,6 @@ export function PaymentModal({
           </p>
           {cart.map((item, idx) => {
             const itemSubtotal = item.productPrice * item.quantity;
-            const extrasSubtotal = item.extras.reduce((sum, e) => sum + e.price * e.quantity * item.quantity, 0);
             return (
               <div key={idx} style={{ marginBottom: '8px', paddingBottom: '8px', borderBottom: idx < cart.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>

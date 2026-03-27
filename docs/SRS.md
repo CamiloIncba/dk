@@ -13,10 +13,12 @@ Construir un sistema tipo Fudo para una **Dark Kitchen** (fábrica de empanadas 
 
 ## 2. Alcance (alto nivel)
 
-### Incluido (MVP fase 1)
-- Catálogo público + carrito + checkout web.
-- Creación de pedido en backend.
-- Gestión operativa interna (producción/estados) reutilizando UX base existente donde aplique.
+### Incluido (Fase 1 — completada operativamente)
+- **Sitio público** (`web-store`): landing, menú por categorías, ficha de producto con **extras/modificadores**, carrito persistente (local), checkout en pasos (carrito → datos → confirmación), validación de contacto y dirección, seguimiento con **timeline** amigable.
+- **API** `/api/v1/store`: menú, extras por producto, creación de pedido, estado enriquecido para cliente.
+- **Ops** (`cashier-pwa`): build estable; cocina con filtro por canal y botón **Comenzar** para pasar a preparación.
+- **Gestión operativa** (producción/estados): heredada del sistema base + mejoras anteriores por canal.
+- **Pago web Fase 1**: acordado como transferencia / confirmación manual; integración de pasarela en web puede ampliarse sin cambiar el contrato de pedido.
 
 ### Excluido (por fase)
 - Integraciones PedidosYa/Uber Eats (fase 2).

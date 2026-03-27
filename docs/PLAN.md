@@ -26,9 +26,10 @@ Fork de `kiosko-autoservicio` orientado a Dark Kitchen (empanadas/pizzas) con ro
 - Estados operativos: producción + despacho.
 
 ### Web Store
-- Landing + catálogo + carrito + checkout (MVP).
+- **Hecho (Fase 1)**: landing, rutas (`/`, `/menu`, `/producto/:id`, `/checkout`, `/seguimiento`), carrito con extras, checkout en 3 pasos, seguimiento con polling.
+- **Mejora continua**: SEO avanzado, PWA/offline, tests E2E tienda.
 
 ### QA/Estándares
-- CI: lint + typecheck + tests mínimos.
+- CI: lint + typecheck + tests mínimos (objetivo siguiente: pipeline automatizado).
 - Auditoría Replicant (27+ checks) como gate.
 

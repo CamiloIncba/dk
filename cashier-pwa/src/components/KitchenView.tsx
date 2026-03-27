@@ -486,6 +486,24 @@ export function KitchenView({ onBack }: KitchenViewProps) {
 
                     {/* Botones */}
                     <div style={{ display: 'flex', gap: '12px' }}>
+                      {order.kitchenStatus === 'PENDING' && (
+                        <button
+                          onClick={() => handleStart(order.id)}
+                          style={{
+                            flex: 1,
+                            padding: '16px',
+                            backgroundColor: '#2563eb',
+                            border: 'none',
+                            borderRadius: '12px',
+                            color: '#fff',
+                            fontSize: '18px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          ▶ Comenzar
+                        </button>
+                      )}
                       <button
                         onClick={() => handleReady(order.id)}
                         style={{

@@ -198,6 +198,7 @@ export const api = {
     reason: string;
     notes?: string;
     approvedBy?: string;
+    source?: string;
   }): Promise<Order> {
     return fetchWithAuth(`/admin/orders/${orderId}/pay-manual`, {
       method: 'POST',
@@ -667,7 +668,7 @@ export interface DashboardStats {
 
 // Obtener estadísticas del dashboard
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const res = await fetch(`${API_BASE}/stats/dashboard`);
+  const res = await fetch(`${getBaseUrl()}/stats/dashboard`);
   if (!res.ok) throw new Error('Error fetching dashboard stats');
   return res.json();
 }
@@ -692,14 +693,14 @@ export interface SystemConfig {
 
 // Obtener configuración del sistema
 export async function getSystemConfig(): Promise<SystemConfig> {
-  const res = await fetch(`${API_BASE}/config`);
+  const res = await fetch(`${getBaseUrl()}/config`);
   if (!res.ok) throw new Error('Error fetching system config');
   return res.json();
 }
 
 // Actualizar configuración del sistema
 export async function updateSystemConfig(updates: Partial<SystemConfig>): Promise<SystemConfig> {
-  const res = await fetch(`${API_BASE}/config`, {
+  const res = await fetch(`${getBaseUrl()}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updates),

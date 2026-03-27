@@ -1,6 +1,8 @@
+import { KitchenStatus, OrderStatus } from '@prisma/client';
 import { StoreController } from './store.controller';
 import { MenuService } from '../menu/menu.service';
 import { OrdersService } from '../orders/orders.service';
+import { ExtrasService } from '../extras/extras.service';
 import { CreateStoreOrderDto } from './dto/create-store-order.dto';
 
 describe('StoreController', () => {
@@ -9,6 +11,7 @@ describe('StoreController', () => {
   let ordersService: jest.Mocked<
     Pick<OrdersService, 'createOrder' | 'getOrderById'>
   >;
+  let extrasService: jest.Mocked<Pick<ExtrasService, 'getProductExtras'>>;
 
   beforeEach(() => {
     menuService = {
@@ -20,9 +23,14 @@ describe('StoreController', () => {
       getOrderById: jest.fn(),
     };
 
+    extrasService = {
+      getProductExtras: jest.fn(),
+    };
+
     controller = new StoreController(
       menuService as unknown as MenuService,
       ordersService as unknown as OrdersService,
+      extrasService as unknown as ExtrasService,
     );
   });
 
@@ -62,32 +70,42 @@ describe('StoreController', () => {
     expect(result).toEqual(createdOrder);
   });
 
-  it('GET /api/v1/store/orders/:id/status devuelve campos esperados', async () => {
+  it('GET /api/v1/store/orders/:id/status incluye timeline y sin nota cruda', async () => {
     const createdAt = new Date('2026-03-01T10:00:00.000Z');
     const updatedAt = new Date('2026-03-01T10:10:00.000Z');
     ordersService.getOrderById.mockResolvedValue({
       id: 77,
-      status: 'CONFIRMED',
-      kitchenStatus: 'IN_PROGRESS',
+      status: OrderStatus.PAID,
+      kitchenStatus: KitchenStatus.READY,
       totalAmount: 18990,
       createdAt,
       updatedAt,
-      items: [],
-      note: 'Campo extra que no debe salir en la respuesta',
+      items: [
+        {
+          quantity: 1,
+          product: { name: 'Pizza' },
+          extras: [{ quantity: 1, extraOption: { name: 'Extra queso' } }],
+        },
+      ],
+      note: 'Interno',
     } as never);
 
     const result = await controller.getOrderStatus(77);
 
     expect(ordersService.getOrderById).toHaveBeenCalledWith(77);
-    expect(result).toEqual({
-      id: 77,
-      status: 'CONFIRMED',
-      kitchenStatus: 'IN_PROGRESS',
-      totalAmount: 18990,
-      createdAt,
-      updatedAt,
-    });
-    expect(result).not.toHaveProperty('items');
+    expect(result.id).toBe(77);
+    expect(result.status).toBe(OrderStatus.PAID);
+    expect(result.kitchenStatus).toBe(KitchenStatus.READY);
+    expect(result.paymentLabel).toBeDefined();
+    expect(result.kitchenLabel).toBeDefined();
+    expect(Array.isArray(result.timeline)).toBe(true);
+    expect(result.lineItems).toEqual([
+      {
+        quantity: 1,
+        productName: 'Pizza',
+        extras: [{ name: 'Extra queso', quantity: 1 }],
+      },
+    ]);
     expect(result).not.toHaveProperty('note');
   });
 });

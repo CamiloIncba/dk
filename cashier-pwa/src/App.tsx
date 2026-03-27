@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { api, MANUAL_PAYMENT_REASONS } from './api/client';
+import { api, type ManualPaymentReason } from './api/client';
 import { OrderCard } from './components/OrderCard';
 import { NewOrder } from './components/NewOrder';
 import { ProductManager } from './components/ProductManager';
@@ -79,11 +79,11 @@ function App() {
     setManualPaymentOrder(order);
   };
 
-  const handleManualPaymentConfirm = async (data: { reason: { code: string }; notes: string }) => {
+  const handleManualPaymentConfirm = async (data: { reason: ManualPaymentReason; notes: string }) => {
     if (!manualPaymentOrder) return;
     try {
       await api.markPaidManual(manualPaymentOrder.id, {
-        reason: data.reason.code,
+        reason: data.reason,
         approvedBy: 'Cajero',
         notes: data.notes || undefined,
       });

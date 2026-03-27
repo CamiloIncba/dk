@@ -8,18 +8,26 @@ import {
 } from '@nestjs/common';
 import { MenuService } from '../menu/menu.service';
 import { OrdersService } from '../orders/orders.service';
+import { ExtrasService } from '../extras/extras.service';
 import { CreateStoreOrderDto } from './dto/create-store-order.dto';
+import { buildStoreStatusPayload } from './store-order-status.util';
 
 @Controller('api/v1/store')
 export class StoreController {
   constructor(
     private readonly menuService: MenuService,
     private readonly ordersService: OrdersService,
+    private readonly extrasService: ExtrasService,
   ) {}
 
   @Get('menu')
   async getMenu() {
     return this.menuService.getMenu();
+  }
+
+  @Get('products/:productId/extras')
+  async getProductExtras(@Param('productId', ParseIntPipe) productId: number) {
+    return this.extrasService.getProductExtras(productId);
   }
 
   @Post('orders')
@@ -34,14 +42,7 @@ export class StoreController {
   @Get('orders/:id/status')
   async getOrderStatus(@Param('id', ParseIntPipe) id: number) {
     const order = await this.ordersService.getOrderById(id);
-    return {
-      id: order.id,
-      status: order.status,
-      kitchenStatus: order.kitchenStatus,
-      totalAmount: order.totalAmount,
-      createdAt: order.createdAt,
-      updatedAt: order.updatedAt,
-    };
+    return buildStoreStatusPayload(order);
   }
 
   private buildInternalNote(dto: CreateStoreOrderDto): string | undefined {
