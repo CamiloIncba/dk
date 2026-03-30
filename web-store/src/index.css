@@ -120,6 +120,41 @@
     --input: 217 19% 27%;
     --ring: 26 85% 52%;
   }
+
+  /* Tiendas por marca (rutas /fersot y /sf) */
+  .brand-store[data-brand="fersot"] {
+    --primary: 16 72% 46%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 16 72% 46%;
+    --accent: 28 40% 94%;
+    --accent-foreground: 16 30% 18%;
+  }
+
+  .brand-store[data-brand="sf"] {
+    --primary: 158 64% 34%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 158 64% 34%;
+    --accent: 160 25% 92%;
+    --accent-foreground: 160 40% 16%;
+  }
+
+  .hub-card--fersot {
+    border-color: hsl(16 35% 82%);
+    background: linear-gradient(
+      135deg,
+      hsl(28 50% 99%) 0%,
+      hsl(16 28% 96%) 100%
+    );
+  }
+
+  .hub-card--sf {
+    border-color: hsl(158 30% 78%);
+    background: linear-gradient(
+      135deg,
+      hsl(155 40% 98%) 0%,
+      hsl(160 22% 94%) 100%
+    );
+  }
 }
 
 @layer base {

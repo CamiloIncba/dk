@@ -1,8 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { CartProvider } from "./cart/CartProvider";
-import { ShopLayout } from "./layout/ShopLayout";
-import { HomePage } from "./pages/HomePage";
-import { CatalogPage } from "./pages/CatalogPage";
+import { BrandRouteWrapper } from "./layout/BrandRouteWrapper";
+import { BrandShopLayout } from "./layout/BrandShopLayout";
+import { HubPage } from "./pages/HubPage";
+import { BrandIndexPage } from "./pages/BrandIndexPage";
+import { BrandMenuPage } from "./pages/BrandMenuPage";
 import { ProductPage } from "./pages/ProductPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
 import { TrackPage } from "./pages/TrackPage";
@@ -10,19 +11,20 @@ import { TrackPage } from "./pages/TrackPage";
 export default function App() {
   return (
     <BrowserRouter>
-      <CartProvider>
-        <Routes>
-          <Route element={<ShopLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/menu" element={<CatalogPage />} />
-            <Route path="/producto/:id" element={<ProductPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/seguimiento" element={<TrackPage />} />
-            <Route path="/seguimiento/:id" element={<TrackPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+      <Routes>
+        <Route path="/" element={<HubPage />} />
+        <Route path="/:brandSlug" element={<BrandRouteWrapper />}>
+          <Route element={<BrandShopLayout />}>
+            <Route index element={<BrandIndexPage />} />
+            <Route path="menu" element={<BrandMenuPage />} />
+            <Route path="producto/:id" element={<ProductPage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="seguimiento" element={<TrackPage />} />
+            <Route path="seguimiento/:id" element={<TrackPage />} />
           </Route>
-        </Routes>
-      </CartProvider>
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }

@@ -1,3 +1,5 @@
+import type { CartQuoteResponse } from "../types";
+
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3010";
 export const getApiUrl = () => API_URL;
 
@@ -18,3 +20,21 @@ export async function fetchWithTimeout(
 }
 
 export type CartLineExtra = { optionId: number; quantity: number };
+
+export type CartQuoteItemPayload = {
+  productId: number;
+  quantity: number;
+  extras: CartLineExtra[];
+};
+
+export async function postStoreQuote(
+  items: CartQuoteItemPayload[],
+): Promise<CartQuoteResponse> {
+  const res = await fetchWithTimeout(`${getApiUrl()}/api/v1/store/quote`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+  });
+  if (!res.ok) throw new Error("quote");
+  return (await res.json()) as CartQuoteResponse;
+}

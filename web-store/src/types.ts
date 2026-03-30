@@ -67,3 +67,22 @@ export type OrderStatusResponse = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type CartQuoteLine = {
+  productId: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+  extras: Array<{
+    optionId: number;
+    name: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
+};
+
+export type CartQuoteResponse = {
+  totalAmount: number;
+  lines: CartQuoteLine[];
+};

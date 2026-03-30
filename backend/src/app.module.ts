@@ -15,6 +15,7 @@ import { StatsModule } from './stats/stats.module';
 import { SystemConfigModule } from './config/config.module';
 import { ImagesModule } from './images/images.module';
 import { StoreModule } from './store/store.module';
+import { ChannelsModule } from './channels/channels.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { StoreModule } from './store/store.module';
     SystemConfigModule,
     ImagesModule,
     StoreModule,
+    ChannelsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

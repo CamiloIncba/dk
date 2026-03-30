@@ -1,4 +1,11 @@
+import * as path from 'node:path';
+import { config } from 'dotenv';
 import { NestFactory } from '@nestjs/core';
+
+config({
+  path: path.join(process.cwd(), '.env'),
+  override: true,
+});
 import { AppModule } from './app.module';
 
 async function bootstrap() {

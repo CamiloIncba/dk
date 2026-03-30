@@ -4,12 +4,13 @@ import { MenuService } from '../menu/menu.service';
 import { OrdersService } from '../orders/orders.service';
 import { ExtrasService } from '../extras/extras.service';
 import { CreateStoreOrderDto } from './dto/create-store-order.dto';
+import { QuoteStoreCartDto } from './dto/quote-store-cart.dto';
 
 describe('StoreController', () => {
   let controller: StoreController;
   let menuService: jest.Mocked<Pick<MenuService, 'getMenu'>>;
   let ordersService: jest.Mocked<
-    Pick<OrdersService, 'createOrder' | 'getOrderById'>
+    Pick<OrdersService, 'createOrder' | 'getOrderById' | 'quoteItems'>
   >;
   let extrasService: jest.Mocked<Pick<ExtrasService, 'getProductExtras'>>;
 
@@ -21,6 +22,7 @@ describe('StoreController', () => {
     ordersService = {
       createOrder: jest.fn(),
       getOrderById: jest.fn(),
+      quoteItems: jest.fn(),
     };
 
     extrasService = {
@@ -46,6 +48,47 @@ describe('StoreController', () => {
     expect(result).toEqual(menu);
   });
 
+  it('POST /api/v1/store/quote delega en OrdersService', async () => {
+    const dto: QuoteStoreCartDto = {
+      items: [{ productId: 10, quantity: 2, extras: [] }],
+    };
+    ordersService.quoteItems.mockResolvedValue({
+      totalAmount: 5000,
+      lines: [
+        {
+          productId: 10,
+          productName: 'Combo',
+          quantity: 2,
+          unitPrice: 2500,
+          lineTotal: 5000,
+          extras: [],
+        },
+      ],
+    });
+
+    const result = await controller.quoteCart(dto);
+
+    expect(ordersService.quoteItems).toHaveBeenCalledWith(dto.items);
+    expect(result.totalAmount).toBe(5000);
+    expect(result.lines).toHaveLength(1);
+  });
+
+  it('POST /api/v1/store/orders incluye Marca cuando viene storeBrand', async () => {
+    const dto: CreateStoreOrderDto = {
+      items: [{ productId: 1, quantity: 1 }],
+      storeBrand: 'sf',
+    };
+    ordersService.createOrder.mockResolvedValue({ id: 1 } as never);
+
+    await controller.createOrder(dto);
+
+    expect(ordersService.createOrder).toHaveBeenCalledWith({
+      items: dto.items,
+      note: '[CHANNEL:WEB_STORE] | Marca: Stone Fungus',
+      channel: 'WEB_STORE',
+    });
+  });
+
   it('POST /api/v1/store/orders transforma nota con [CHANNEL:WEB_STORE]', async () => {
     const dto: CreateStoreOrderDto = {
       items: [{ productId: 10, quantity: 2 }],
@@ -66,6 +109,7 @@ describe('StoreController', () => {
     expect(ordersService.createOrder).toHaveBeenCalledWith({
       items: dto.items,
       note: '[CHANNEL:WEB_STORE] | Cliente: Ana | Telefono: +56912345678 | Direccion: Av. Principal 123 | Pago: CARD | Nota: Sin cebolla',
+      channel: 'WEB_STORE',
     });
     expect(result).toEqual(createdOrder);
   });

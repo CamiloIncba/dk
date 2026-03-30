@@ -3,6 +3,10 @@ backend/node_modules
 backend/dist
 backend/.env
 
+# PostgreSQL dev local (cluster en puerto 5433)
+.dev/pg-data/
+.dev/pg.log
+
 # Android / Gradle
 android-app/.gradle
 android-app/.idea

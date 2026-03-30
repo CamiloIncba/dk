@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { OrderStatusResponse } from "../types";
+import { useBrandPaths } from "../brand/BrandContext";
 import { getApiUrl, fetchWithTimeout } from "../api/storeApi";
 import { formatCurrency, parsePrice } from "../lib/format";
 import { getFriendlyError } from "./checkoutErrors";
@@ -9,6 +10,7 @@ const POLL_MIN = 10_000;
 const POLL_MAX = 15_000;
 
 export function TrackPage() {
+  const paths = useBrandPaths();
   const { id } = useParams();
   const navigate = useNavigate();
   const orderId = id ? Number(id) : NaN;
@@ -62,7 +64,7 @@ export function TrackPage() {
           onSubmit={(e) => {
             e.preventDefault();
             const n = Number(manualId.replace(/\D/g, ""));
-            if (n > 0) void navigate(`/seguimiento/${n}`);
+            if (n > 0) void navigate(paths.trackOrder(n));
           }}
         >
           <input
@@ -78,7 +80,7 @@ export function TrackPage() {
             Ver
           </button>
         </form>
-        <Link to="/menu" className="text-sm text-primary underline">
+        <Link to={paths.menu} className="text-sm text-primary underline">
           Volver al menú
         </Link>
       </div>
@@ -95,7 +97,10 @@ export function TrackPage() {
 
   return (
     <div className="container max-w-md space-y-6 py-10">
-      <Link to="/seguimiento" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        to={paths.track}
+        className="text-sm text-muted-foreground hover:text-foreground"
+      >
         ← Buscar otro pedido
       </Link>
       <h1 className="text-xl font-semibold">

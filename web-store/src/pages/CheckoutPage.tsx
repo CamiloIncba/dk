@@ -2,14 +2,34 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../cart/useCart";
-import { lineTotal } from "../cart/cartLine";
-import { getApiUrl, fetchWithTimeout } from "../api/storeApi";
+import { lineTotal, type CartLine } from "../cart/cartLine";
+import {
+  getApiUrl,
+  fetchWithTimeout,
+  postStoreQuote,
+  type CartQuoteItemPayload,
+} from "../api/storeApi";
+import type { CartQuoteResponse } from "../types";
 import { formatCurrency } from "../lib/format";
+import { useBrand, useBrandPaths } from "../brand/BrandContext";
 import { getFriendlyError } from "./checkoutErrors";
 
 type Step = 1 | 2 | 3;
 
+function linesToQuotePayload(cartLines: CartLine[]): CartQuoteItemPayload[] {
+  return cartLines.map((l) => ({
+    productId: l.productId,
+    quantity: l.quantity,
+    extras: l.extras.map((ex) => ({
+      optionId: ex.optionId,
+      quantity: ex.qty,
+    })),
+  }));
+}
+
 export function CheckoutPage() {
+  const brand = useBrand();
+  const paths = useBrandPaths();
   const { lines, subtotal, setQty, removeLine, clear } = useCart();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>(1);
@@ -20,10 +40,41 @@ export function CheckoutPage() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [serverQuote, setServerQuote] = useState<CartQuoteResponse | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (lines.length === 0 && step !== 1) setStep(1);
   }, [lines.length, step]);
+
+  useEffect(() => {
+    if (step !== 3 || lines.length === 0) {
+      setServerQuote(null);
+      setQuoteError(null);
+      setQuoteLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setQuoteLoading(true);
+    setQuoteError(null);
+    void (async () => {
+      try {
+        const q = await postStoreQuote(linesToQuotePayload(lines));
+        if (!cancelled) setServerQuote(q);
+      } catch (err) {
+        if (!cancelled) {
+          setServerQuote(null);
+          setQuoteError(getFriendlyError("quote", err));
+        }
+      } finally {
+        if (!cancelled) setQuoteLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [step, lines]);
 
   const validateContacts = (): string | null => {
     const n = name.trim();
@@ -71,12 +122,13 @@ export function CheckoutPage() {
           },
           paymentMethod: "transfer",
           note: note.trim() || undefined,
+          storeBrand: brand.id,
         }),
       });
       if (!res.ok) throw new Error("order");
       const created = (await res.json()) as { id: number };
       clear();
-      navigate(`/seguimiento/${created.id}`, { replace: true });
+      navigate(paths.trackOrder(created.id), { replace: true });
     } catch (err) {
       setApiError(getFriendlyError("checkout", err));
     } finally {
@@ -92,7 +144,7 @@ export function CheckoutPage() {
           El carrito está vacío. Explorá el menú para armar tu pedido.
         </p>
         <Link
-          to="/menu"
+          to={paths.menu}
           className="inline-flex rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
         >
           Ir al menú
@@ -273,8 +325,34 @@ export function CheckoutPage() {
               ))}
             </ul>
             <p className="mt-3 font-semibold">
-              Total {formatCurrency(subtotal)}
+              Total en carrito {formatCurrency(subtotal)}
             </p>
+            {quoteLoading ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Validando total con el servidor…
+              </p>
+            ) : null}
+            {quoteError ? (
+              <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">
+                {quoteError}
+              </p>
+            ) : null}
+            {serverQuote ? (
+              <div className="mt-2 space-y-1 text-sm">
+                <p>
+                  <span className="text-muted-foreground">Total confirmado</span>{" "}
+                  <span className="font-semibold tabular-nums">
+                    {formatCurrency(serverQuote.totalAmount)}
+                  </span>
+                </p>
+                {Math.round(Math.abs(serverQuote.totalAmount - subtotal)) > 0 ? (
+                  <p className="text-xs text-amber-800 dark:text-amber-200">
+                    El importe difiere del carrito (precios o promociones
+                    actualizados).
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
             <hr className="my-3 border-border" />
             <p>
               {name.trim()} · {phone.trim()}

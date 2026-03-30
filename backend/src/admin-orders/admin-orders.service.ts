@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderStatus, KitchenStatus, Prisma } from '@prisma/client';
-import { extractOrderChannelFromNote, ORDER_CHANNEL_UNKNOWN } from '../common';
+import { resolveOrderChannel, extractOrderChannelFromNote, ORDER_CHANNEL_UNKNOWN, CHANNEL_LABELS } from '../common/utils/order-channel.util';
 
 // Razones válidas para pago manual
 export const MANUAL_PAYMENT_REASONS = {
@@ -55,7 +55,10 @@ export class AdminOrdersService {
 
     const normalizedChannel = filters?.channel?.toUpperCase();
     if (normalizedChannel && normalizedChannel !== ORDER_CHANNEL_UNKNOWN) {
-      where.note = { contains: `[CHANNEL:${normalizedChannel}]` };
+      where.OR = [
+        { channel: normalizedChannel as any },
+        { note: { contains: `[CHANNEL:${normalizedChannel}]` } },
+      ];
     }
 
     const orders = await this.prisma.order.findMany({
@@ -71,12 +74,14 @@ export class AdminOrdersService {
         totalAmount: true,
         receiptCode: true,
         note: true,
+        channel: true,
       },
     });
 
     const withChannel = orders.map((order) => ({
       ...order,
-      channel: extractOrderChannelFromNote(order.note),
+      channel: resolveOrderChannel(order.channel, order.note),
+      channelLabel: CHANNEL_LABELS[resolveOrderChannel(order.channel, order.note)] ?? resolveOrderChannel(order.channel, order.note),
       totalAmount: Number(order.totalAmount),
     }));
 

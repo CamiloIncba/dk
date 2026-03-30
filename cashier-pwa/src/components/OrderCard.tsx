@@ -11,6 +11,19 @@ interface OrderCardProps {
   tab: 'new' | 'pending' | 'active' | 'ready';
 }
 
+function getChannelInfo(order: Order): { label: string; bg: string; color: string } {
+  const ch = (order.channel ?? '').toUpperCase() ||
+    (order.note?.match(/\[CHANNEL:([A-Z0-9_]+)\]/)?.[1] ?? '');
+  switch (ch) {
+    case 'WEB_STORE': return { label: 'Web', bg: '#7c3aed', color: '#ede9fe' };
+    case 'PEDIDOS_YA': return { label: 'PedidosYa', bg: '#e11d48', color: '#fff1f2' };
+    case 'UBER_EATS': return { label: 'Uber Eats', bg: '#16a34a', color: '#f0fdf4' };
+    case 'WHATSAPP': return { label: 'WhatsApp', bg: '#059669', color: '#ecfdf5' };
+    case 'IN_STORE': return { label: 'Local', bg: '#2563eb', color: '#eff6ff' };
+    default: return { label: 'Local', bg: '#6b7280', color: '#f3f4f6' };
+  }
+}
+
 export function OrderCard({ order, onPayCash, onPayManual, onRegenerateQR, onStart: _onStart, onReady, onDelivered, tab }: OrderCardProps) {
   const formatPrice = (price: string) => {
     return new Intl.NumberFormat('es-AR', {
@@ -67,9 +80,28 @@ export function OrderCard({ order, onPayCash, onPayManual, onRegenerateQR, onSta
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
-          Pedido #{order.id}
-        </h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
+            Pedido #{order.id}
+          </h3>
+          {(() => {
+            const ch = getChannelInfo(order);
+            return (
+              <span style={{
+                backgroundColor: ch.bg,
+                color: ch.color,
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontSize: '10px',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}>
+                {ch.label}
+              </span>
+            );
+          })()}
+        </div>
         <span
           style={{
             backgroundColor: getStatusColor(order.kitchenStatus),

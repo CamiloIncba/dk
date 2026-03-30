@@ -3,6 +3,11 @@ export default {
   darkMode: ["selector", ":is(.dark, .dusk)", "class"],
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
+    fontMetrics: {
+      sans: {
+        fallback: "system-ui, sans-serif",
+      },
+    },
     container: {
       center: true,
       padding: "1rem",
@@ -11,6 +16,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['"DM Sans"', "system-ui", "sans-serif"],
+        serif: ['"Playfair Display"', "Georgia", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

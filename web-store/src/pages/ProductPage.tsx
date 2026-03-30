@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { MenuResponse, ProductExtraGroupDto } from "../types";
+import { useBrandPaths } from "../brand/BrandContext";
 import { getApiUrl, fetchWithTimeout } from "../api/storeApi";
 import { formatCurrency, parsePrice } from "../lib/format";
 import { useCart } from "../cart/useCart";
@@ -35,6 +36,7 @@ function maxForGroup(group: ProductExtraGroupDto): number {
 }
 
 export function ProductPage() {
+  const paths = useBrandPaths();
   const { id } = useParams();
   const productId = Number(id);
   const navigate = useNavigate();
@@ -172,7 +174,7 @@ export function ProductPage() {
       baseUnitPrice: parsePrice(product.price),
       extras: ex,
     });
-    navigate("/checkout");
+    navigate(paths.checkout);
   };
 
   if (loading) {
@@ -187,7 +189,7 @@ export function ProductPage() {
     return (
       <div className="container py-10 space-y-4">
         <p className="text-destructive">{error ?? "Producto no encontrado"}</p>
-        <Link to="/menu" className="text-sm text-primary underline">
+        <Link to={paths.menu} className="text-sm text-primary underline">
          Volver al menú
         </Link>
       </div>
@@ -198,7 +200,10 @@ export function ProductPage() {
 
   return (
     <div className="container max-w-lg space-y-6 py-10">
-      <Link to="/menu" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        to={paths.menu}
+        className="text-sm text-muted-foreground hover:text-foreground"
+      >
         ← Menú
       </Link>
       <div>

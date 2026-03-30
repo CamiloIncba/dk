@@ -8,7 +8,7 @@ interface KitchenViewProps {
   onBack?: () => void;
 }
 
-type ChannelFilter = 'TODOS' | 'WEB_STORE' | 'OTROS';
+type ChannelFilter = 'TODOS' | 'WEB_STORE' | 'PEDIDOS_YA' | 'UBER_EATS' | 'WHATSAPP' | 'OTROS';
 
 // Sonido de notificación (ding corto)
 const NOTIFICATION_SOUND = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleF9dYHWPo6iggGU/P2qOr8K8rYloTVRuj6e5sJFuW1VmfJCepp2OgGlhZXCFl5qWk4N0bG1wfYuVlZSJeXBtcXyCi5OSj4V8d3Z5fomPjoqAfHZ4eX2Fjo+Mh393c3R3e4SKjYqFfnd0dXh+hoyMiYV9d3V1e4GHi4mGgXt2dniAhYmIhoF8d3Z5fYOGiIeFfnp2dXl+g4eHhYF8d3V3fYKGh4WDfnh1dXl+goaGhIJ9eHV2en+EhoWDgHt3dXZ6f4OGhYOAfXh1dXl+goaFhIF8d3Z3fIKFhYSBfXl2dnl+g4WFg4F9eHZ2eX6ChYWDgX14dnZ5foKFhYOBfXh2dnl9goWFg4F9eHZ2eX6ChYWDgX14dnZ5foKFhYOBfXh2dnl9goWFg4F9eHZ2eX6ChYWDgX14dnZ5foKFhYOBfXh2dnl+goWFg4F9eHZ2eX2ChYSDgX14dnZ5foKFhYOBfXh2dnl+goWFg4F9eHZ2eX6ChYWDgX14dnZ5foKFhYOBfXh2dnl+goWFg4F9eHZ2eX6ChYWDgX14dnZ5foKFhYOBfXh2dnl+goWFg4F9eHZ2eX6ChYWDgX14dnZ5foKFhYOBfXh2dw==';
@@ -187,8 +187,10 @@ export function KitchenView({ onBack }: KitchenViewProps) {
   const matchesChannelFilter = useCallback((order: Order): boolean => {
     const channel = getOrderChannel(order);
     if (channelFilter === 'TODOS') return true;
-    if (channelFilter === 'WEB_STORE') return channel === 'WEB_STORE';
-    return channel !== 'WEB_STORE';
+    if (channelFilter === 'OTROS') {
+      return !['WEB_STORE', 'PEDIDOS_YA', 'UBER_EATS', 'WHATSAPP'].includes(channel);
+    }
+    return channel === channelFilter;
   }, [channelFilter, getOrderChannel]);
 
   const filteredActiveOrders = useMemo(
@@ -201,9 +203,15 @@ export function KitchenView({ onBack }: KitchenViewProps) {
     [readyOrders, matchesChannelFilter]
   );
 
-  const getChannelBadgeStyles = (channel: string): { bg: string; text: string } => {
-    if (channel === 'WEB_STORE') return { bg: '#7c3aed', text: '#ede9fe' };
-    return { bg: '#4b5563', text: '#f3f4f6' };
+  const getChannelBadgeStyles = (channel: string): { bg: string; text: string; label: string } => {
+    switch (channel) {
+      case 'WEB_STORE': return { bg: '#7c3aed', text: '#ede9fe', label: 'Web' };
+      case 'PEDIDOS_YA': return { bg: '#e11d48', text: '#fff1f2', label: 'PedidosYa' };
+      case 'UBER_EATS': return { bg: '#16a34a', text: '#f0fdf4', label: 'Uber Eats' };
+      case 'WHATSAPP': return { bg: '#059669', text: '#ecfdf5', label: 'WhatsApp' };
+      case 'IN_STORE': return { bg: '#2563eb', text: '#eff6ff', label: 'Local' };
+      default: return { bg: '#4b5563', text: '#f3f4f6', label: channel || 'Local' };
+    }
   };
 
   return (
@@ -275,7 +283,7 @@ export function KitchenView({ onBack }: KitchenViewProps) {
             borderRadius: '10px',
             padding: '4px',
           }}>
-            {(['TODOS', 'WEB_STORE', 'OTROS'] as ChannelFilter[]).map((filter) => (
+            {(['TODOS', 'WEB_STORE', 'PEDIDOS_YA', 'UBER_EATS', 'WHATSAPP', 'OTROS'] as ChannelFilter[]).map((filter) => (
               <button
                 key={filter}
                 onClick={() => setChannelFilter(filter)}
@@ -290,7 +298,7 @@ export function KitchenView({ onBack }: KitchenViewProps) {
                   color: channelFilter === filter ? '#fff' : '#d1d5db',
                 }}
               >
-                {filter}
+                {{ TODOS: 'Todos', WEB_STORE: 'Web', PEDIDOS_YA: 'PedidosYa', UBER_EATS: 'Uber', WHATSAPP: 'WhatsApp', OTROS: 'Otros' }[filter]}
               </button>
             ))}
           </div>

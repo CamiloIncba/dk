@@ -8,12 +8,19 @@ import type { ReactNode } from "react";
 import { CartContext } from "./cartContextInstance";
 import { makeLineKey, lineTotal, type CartLine } from "./cartLine";
 
-const STORAGE_KEY = "dk-web-store-cart-v1";
+const DEFAULT_STORAGE_KEY = "dk-web-store-cart-v1";
 
-export function CartProvider({ children }: { children: ReactNode }) {
+export function CartProvider({
+  children,
+  storageKey = DEFAULT_STORAGE_KEY,
+}: {
+  children: ReactNode;
+  /** Clave por marca para no mezclar carritos entre Fersot y Stone Fungus */
+  storageKey?: string;
+}) {
   const [lines, setLines] = useState<CartLine[]>(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(storageKey);
       if (!raw) return [];
       const parsed = JSON.parse(raw) as CartLine[];
       return Array.isArray(parsed) ? parsed : [];
@@ -24,11 +31,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
+      localStorage.setItem(storageKey, JSON.stringify(lines));
     } catch {
       /* ignore */
     }
-  }, [lines]);
+  }, [lines, storageKey]);
 
   const addLine = useCallback(
     (
