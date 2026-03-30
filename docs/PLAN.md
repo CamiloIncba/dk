@@ -40,9 +40,33 @@ Fork de `kiosko-autoservicio` orientado a Dark Kitchen (empanadas/pizzas) con ro
 - **Variables de entorno** requeridas para producción: `PEDIDOSYA_WEBHOOK_SECRET`, `UBEREATS_WEBHOOK_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `MP_ACCESS_TOKEN`.
 
 ### QA/Estándares
-- CI: lint + typecheck + build en GitHub Actions (dk-frontend).
+- CI backend: unit tests + build en GitHub Actions (`dk-dark-kitchen`).
+- CI frontend: lint + typecheck + build en GitHub Actions (`dk-frontend`).
+- Unit tests: 9 suites / 13 tests para backend (store controller, servicios).
+- E2E tests: 6 tests de integración real para endpoints `/api/v1/store/*`.
 - Webhooks protegidos con `ApiKeyGuard`.
 - Auditoría Replicant (27+ checks) como gate.
+
+---
+
+## Recomendaciones pendientes
+
+Registradas el 2026-03-30. Prioridad sugerida de mayor a menor impacto operacional.
+
+### R1 — Pagos reales (Mercado Pago / WebPay)
+- **Impacto**: Alto — hoy el checkout usa "transferencia manual", lo que requiere verificación humana.
+- **Acción**: Obtener access token de producción de Mercado Pago (o integrar WebPay Plus/OneClick); conectar `PaymentLinksService` con credenciales reales; testear flujo de pago completo → callback → actualización de estado de orden.
+- **Dependencia**: Cuenta Mercado Pago verificada o contrato con Transbank.
+
+### R2 — Branding a producción
+- **Impacto**: Alto — la tienda necesita identidad visual definitiva.
+- **Acción**: Elegir uno de los 10 enfoques generados (ver [galería de branding](https://camiloincba.github.io/dk-frontend/branding/_shared/preview.html)); aplicar tipografía, colores, logo y favicon al web store (`dk-frontend`); actualizar imágenes de producto con fotografía real.
+- **Dependencia**: Decisión del equipo sobre el enfoque visual preferido.
+
+### R3 — WhatsApp como canal prioritario
+- **Impacto**: Alto — WhatsApp tiene el mayor alcance y menor costo en Chile vs. PedidosYa/Uber Eats (que cobran comisión ~30%).
+- **Acción**: Crear cuenta Meta Business; solicitar acceso a WhatsApp Business API; configurar `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`; testear flujo conversacional completo (menú → selección → dirección → confirmación → pedido + link de pago).
+- **Dependencia**: Cuenta de Meta Business verificada + número de teléfono dedicado.
 
 ---
 
